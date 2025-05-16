@@ -1,3 +1,5 @@
+APIKeys.swift
+
 # Xcode
 #
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
@@ -16,6 +18,25 @@ xcuserdata/
 ## Playgrounds
 timeline.xctimeline
 playground.xcworkspace
+
+build/
+DerivedData/
+
+# Xcode Project Workspace
+*.xcworkspace
+!default.xcworkspace
+
+# Xcode User Data and Schemes
+*.xcuserdata
+*.xccheckout
+*.xcscmblueprint
+
+# Xcode Specific Settings Files
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.perspectivev3
 
 # Swift Package Manager
 #
@@ -60,3 +81,10 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Miscellaneous System Files
+.DS_Store
+.idea/
+*.swa
+
+xcdebugger/
