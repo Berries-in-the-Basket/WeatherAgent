@@ -29,7 +29,6 @@ struct ChatRequest: Codable {
     let messages: [ChatMessage]
     let max_completion_tokens: Int
     let tools: [Tool]?
-    let tool_choice: String?
 }
 
 struct ChatResponse: Codable {

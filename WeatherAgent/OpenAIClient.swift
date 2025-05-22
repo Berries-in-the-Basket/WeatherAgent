@@ -21,7 +21,7 @@ func callChatOpenAIAPI(prompt: String) async throws -> ChatResponse {
         ChatMessage(role: "user", content: prompt, tool_calls: nil)
     ]
     
-    let chatRequest = ChatRequest(model: "gpt-4o", messages: messages, max_completion_tokens: 150, tools: nil, tool_choice: "none")
+    let chatRequest = ChatRequest(model: "gpt-4o", messages: messages, max_completion_tokens: 150, tools: nil)
     
     // request using Alamofire
     let dataTask = AF.request(
@@ -51,7 +51,7 @@ func callChatOpenAIAPIWithChatMemory(messages: [ChatMessage]) async throws -> Ch
     ]
     promptWithChatMemory.append(contentsOf: messages)
     
-    let chatRequest = ChatRequest(model: "gpt-4o", messages: promptWithChatMemory, max_completion_tokens: 150, tools: nil, tool_choice: "none")
+    let chatRequest = ChatRequest(model: "gpt-4o", messages: promptWithChatMemory, max_completion_tokens: 150, tools: nil)
     
     // request using Alamofire
     let dataTask = AF.request(
@@ -90,7 +90,7 @@ func callChatOpenAIAPIWithTools(prompt: String) async throws -> ChatResponse{
             )
     ]
     
-    let chatRequest = ChatRequest(model: "gpt-4o", messages: messages, max_completion_tokens: 150, tools: tools, tool_choice: "auto")
+    let chatRequest = ChatRequest(model: "gpt-4o", messages: messages, max_completion_tokens: 150, tools: tools)
     
     // request using Alamofire
     let dataTask = AF.request(
