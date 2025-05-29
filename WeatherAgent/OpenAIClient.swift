@@ -17,8 +17,8 @@ func callChatOpenAIAPI(prompt: String) async throws -> ChatResponse {
     ]
     
     let messages = [
-        ChatMessage(role: "system", content: systemPrompt, tool_calls: nil),
-        ChatMessage(role: "user", content: prompt, tool_calls: nil)
+        ChatMessage(role: "system", content: systemPrompt, tool_calls: nil, tool_call_id: nil),
+        ChatMessage(role: "user", content: prompt, tool_calls: nil, tool_call_id: nil)
     ]
     
     let chatRequest = ChatRequest(model: "gpt-4o", messages: messages, max_completion_tokens: 150, tools: nil)
@@ -47,7 +47,7 @@ func callChatOpenAIAPIWithChatMemory(messages: [ChatMessage]) async throws -> Ch
     ]
     
     var promptWithChatMemory = [
-        ChatMessage(role: "system", content: systemPrompt, tool_calls: nil),
+        ChatMessage(role: "system", content: systemPrompt, tool_calls: nil, tool_call_id: nil),
     ]
     promptWithChatMemory.append(contentsOf: messages)
     
@@ -68,17 +68,12 @@ func callChatOpenAIAPIWithChatMemory(messages: [ChatMessage]) async throws -> Ch
     return result
 }
 
-func callChatOpenAIAPIWithTools(prompt: String) async throws -> ChatResponse{
+func callChatOpenAIAPIWithTools(messages: [ChatMessage]) async throws -> ChatResponse{
     let url = "https://api.openai.com/v1/chat/completions"
     
     let headers: HTTPHeaders = [
         "Content-Type": "application/json",
         "Authorization": "Bearer \(APIKeys.openAIAPIKey)"
-    ]
-    
-    let messages = [
-        ChatMessage(role: "system", content: systemPrompt, tool_calls: nil),
-        ChatMessage(role: "user", content: prompt, tool_calls: nil)
     ]
     
     let tools = [
@@ -89,77 +84,30 @@ func callChatOpenAIAPIWithTools(prompt: String) async throws -> ChatResponse{
              function: ToolFunction(name: "getCurrentLocation", parameters: nil)
             )
     ]
-    
-    let chatRequest = ChatRequest(model: "gpt-4o", messages: messages, max_completion_tokens: 150, tools: tools)
-    
-    // request using Alamofire
-    let dataTask = AF.request(
-        url,
-        method: .post,
-        parameters: chatRequest,
-        encoder: JSONParameterEncoder.default,
-        headers: headers
-    )
-        .validate()
-        .serializingDecodable(ChatResponse.self)
-    
-    let result = try await dataTask.value
-    return result
+        
+    var promptWithChatMemory = [ChatMessage(role: "system", content: systemPrompt, tool_calls: nil, tool_call_id: nil)]
+    promptWithChatMemory.append(contentsOf: messages)
+        
+        print("CHAT HISTORY STARTS HERE: ")
+        print(promptWithChatMemory)
+        print("END OF CHAT HISTORY")
+        
+        let chatRequest = ChatRequest(model: "gpt-4o", messages: promptWithChatMemory, max_completion_tokens: 150, tools: tools)
+        // request using Alamofire
+        let dataTask = AF.request(
+            url,
+            method: .post,
+            parameters: chatRequest,
+            encoder: JSONParameterEncoder.default,
+            headers: headers
+        )
+            .validate()
+            .serializingDecodable(ChatResponse.self)
+        
+        let result = try await dataTask.value
+        return result
+
 }
-
-//MARK: TODO - break it into smaller functions!
-//func getActionBasedOnResponse(response: ChatResponse) throws -> [String]{
-//    var baseResponse = ""
-//    var actionFound: [String] = []
-//    
-//    if let choice = response.choices.first{
-//        baseResponse = choice.message.content
-//    }
-//    
-//    let responseLines = baseResponse.split(separator: "\n")
-//    
-//    let regex = "^Action: (\\w+): (.*)$"
-//    
-//    if let regexPattern = try? NSRegularExpression(pattern: regex) {
-//        for line in responseLines{
-//            let nsRange = NSRange(line.startIndex..., in: line)
-//            if let match = regexPattern.firstMatch(in: String(line), range: nsRange) {
-//                let matchResult = (0..<match.numberOfRanges).map { index in
-//                    let range = match.range(at: index)
-//                    if range.location != NSNotFound {
-//                        return String(line[Range(range, in: line)!])
-//                    } else {
-//                        return ""
-//                    }
-//                }
-//                actionFound.append(contentsOf: matchResult)
-//            }
-//        }
-//        
-//        print("Action found: \(actionFound)")
-//    }
-//    return actionFound
-//}
-
-//func runAction(actions: [String]) async throws -> String{
-//    if actions.count > 0 {
-//        let action = actions[1]
-//        let actionArgument = actions[2]
-//        
-//        guard let functionToBeCalled = try await availableFunctions[action] else{
-//            print("No function to be called")
-//            return "No function to be called"
-//        }
-//        
-//        print("Calling function: \(String(describing: functionToBeCalled))")
-//        
-//        let observation = try await functionToBeCalled(actionArgument)
-//        return observation
-//    }else{
-//        return ""
-//    }
-//    
-//}
 
 func getCurrentWeather() async throws -> String{
     print("Current weather")
@@ -167,13 +115,13 @@ func getCurrentWeather() async throws -> String{
 }
 
 func getCurrentLocation() async throws -> String{
-    print("Current Location")
-    print("Berlin")
+    print("Current Location: Berlin")
     return "Berlin"
 }
 
 let availableFunctions = [
-    getCurrentWeather, getCurrentLocation
+    "getCurrentWeather": getCurrentWeather,
+    "getCurrentLocation": getCurrentLocation
 ]
 
 var systemPrompt = """

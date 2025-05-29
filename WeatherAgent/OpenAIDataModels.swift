@@ -8,9 +8,10 @@
 import Foundation
 
 struct ChatMessage: Codable {
-    let role: String  // "system", "user", or "assistant"
+    let role: String  // "system", "user", "assistant", or "tool"
     let content: String?
-    let tool_calls: [ToolCall]?
+    let tool_calls: [ToolCall]? //has to be an array
+    let tool_call_id: String?
     
     struct ToolCall: Codable {
         let id: String
@@ -19,7 +20,7 @@ struct ChatMessage: Codable {
         
         struct FunctionCalled: Codable {
             let name: String
-            let arguments: String
+            let arguments: String?
         }
     }
 }

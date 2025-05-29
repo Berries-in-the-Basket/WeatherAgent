@@ -14,9 +14,7 @@ struct ContentView: View {
     
     @State var currentLocation = ""
     
-    @State var messages: [ChatMessage] = []
-    
-    @State var observation = ""
+    @State var chatHistory: [ChatMessage] = []
     
     var body: some View {
         VStack {
@@ -24,25 +22,56 @@ struct ContentView: View {
             
             Button{
                 isLoading = true
-                //                messages.append(ChatMessage(role: "user", content: prompt))
+                chatHistory.append(ChatMessage(role: "user", content: prompt, tool_calls: nil, tool_call_id: nil))
                 Task{
                     do{
-                        //                        let maxIterations = 5
-                        //                        for i in 0..<maxIterations{
-                        //                            print("Current iteration: \(i)")
-                        let response = try await callChatOpenAIAPIWithTools(prompt: prompt)
-                        print(response)
+                        let maxIterations = 5
                         
-                        if let choice = response.choices.first{
-                            await MainActor.run {
-                                textToBeDisplayed = choice.message.tool_calls?.first?.function.name ?? "No tool call"
-                                isLoading = false
+                        for i in 0..<maxIterations{
+                            print("Current iteration: \(i)")
+
+                            let response = try await callChatOpenAIAPIWithTools(messages: chatHistory)
+                            
+                            print("RESPONSE STARTS HERE: ")
+                            print(response)
+                            print("END OF RESPONSE")
+                            
+                            chatHistory.append(ChatMessage(role: "assistant", content: response.choices.first?.message.content ?? "", tool_calls: response.choices.first?.message.tool_calls, tool_call_id: nil))
+                            
+                            if let choice = response.choices.first{
+                                if choice.finish_reason == "stop"{
+                                    await MainActor.run {
+                                        textToBeDisplayed = choice.message.content ?? "Error, response not generated"
+                                        isLoading = false
+                                        print("About to be stopped out")
+                                    }
+                                    print("Stopping out")
+                                    return
+                                }else if choice.finish_reason == "tool_calls"{
+                                    print("make a function call")
+                                    
+                                    let toolCalls = choice.message.tool_calls ?? []
+                                    var resultToBeDisplayed = ""
+                                    
+                                    for toolCall in toolCalls{
+                                        let functionName = toolCall.function.name
+                                        let functionToCall = availableFunctions[functionName]
+                                        let functionToCallResult = try await functionToCall?()
+                                        print(functionToCallResult)
+                                        resultToBeDisplayed += functionToCallResult ?? "No result found"
+                                        
+                                        chatHistory.append(ChatMessage(role: "tool", content: resultToBeDisplayed, tool_calls: nil, tool_call_id: toolCall.id))
+                                    }
+
+                                    await MainActor.run {
+                                        textToBeDisplayed = resultToBeDisplayed
+                                        isLoading = false
+                                    }
+                                }
+                            }else{
+                                textToBeDisplayed = "Error, response not generated"
                             }
-                            //                                break
-                        }else{
-                            textToBeDisplayed = "Error, response not generated"
                         }
-                        //                        }
                     }
                     catch{
                         await MainActor.run {
