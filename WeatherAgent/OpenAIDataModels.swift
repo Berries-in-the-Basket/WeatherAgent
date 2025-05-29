@@ -57,7 +57,7 @@ struct ToolFunction: Codable {
 
 struct FunctionParameters: Codable {
     let type: String
-    let properties: [Property]
+    let properties: [String: Property]
     
     struct Property: Codable {
         let type: String

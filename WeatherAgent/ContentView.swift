@@ -28,13 +28,13 @@ struct ContentView: View {
                         let maxIterations = 5
                         
                         for i in 0..<maxIterations{
-                            print("Current iteration: \(i)")
-
+//                            print("Current iteration: \(i)")
+                            
                             let response = try await callChatOpenAIAPIWithTools(messages: chatHistory)
                             
-                            print("RESPONSE STARTS HERE: ")
-                            print(response)
-                            print("END OF RESPONSE")
+//                            print("RESPONSE STARTS HERE: ")
+//                            print(response)
+//                            print("END OF RESPONSE")
                             
                             chatHistory.append(ChatMessage(role: "assistant", content: response.choices.first?.message.content ?? "", tool_calls: response.choices.first?.message.tool_calls, tool_call_id: nil))
                             
@@ -43,26 +43,42 @@ struct ContentView: View {
                                     await MainActor.run {
                                         textToBeDisplayed = choice.message.content ?? "Error, response not generated"
                                         isLoading = false
-                                        print("About to be stopped out")
+//                                        print("About to be stopped out")
                                     }
-                                    print("Stopping out")
+//                                    print("Stopping out")
                                     return
                                 }else if choice.finish_reason == "tool_calls"{
-                                    print("make a function call")
+//                                    print("make a function call")
                                     
                                     let toolCalls = choice.message.tool_calls ?? []
+                                    
+//                                    print("TOOL CALLS")
+//                                    print(toolCalls)
+                                    
                                     var resultToBeDisplayed = ""
                                     
                                     for toolCall in toolCalls{
                                         let functionName = toolCall.function.name
                                         let functionToCall = availableFunctions[functionName]
-                                        let functionToCallResult = try await functionToCall?()
-                                        print(functionToCallResult)
+                                        let functionArgumentsToPass = toolCall.function.arguments
+                                        
+                                        //                                        print("ARGUMENTS")
+                                        //                                        print(functionArgumentsToPass)
+                                        
+                                        let argumentsToCallFunctionWith: [String: String] = try JSONDecoder().decode([String:String].self, from: Data(functionArgumentsToPass!.utf8))
+                                        
+                                        //                                        print("ARGUMENTS DECODED JSON")
+                                        //                                        print(argumentsToCallFunctionWith)
+                                        
+                                        let functionToCallResult = try await functionToCall?(argumentsToCallFunctionWith["location"] ?? "Berlin")
+                                        
+                                        //                                        print(functionToCallResult)
+                                        
                                         resultToBeDisplayed += functionToCallResult ?? "No result found"
                                         
                                         chatHistory.append(ChatMessage(role: "tool", content: resultToBeDisplayed, tool_calls: nil, tool_call_id: toolCall.id))
                                     }
-
+                                    
                                     await MainActor.run {
                                         textToBeDisplayed = resultToBeDisplayed
                                         isLoading = false
@@ -106,5 +122,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    //    ContentView()
+        ContentView()
 }
