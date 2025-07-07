@@ -98,7 +98,7 @@ func callChatOpenAIAPIWithTools(messages: [ChatMessage]) async throws -> ChatRes
     //    print(promptWithChatMemory)
     //    print("END OF CHAT HISTORY")
     
-    let chatRequest = ChatRequest(model: "gpt-4o", messages: promptWithChatMemory, max_completion_tokens: 150, tools: tools)
+    let chatRequest = ChatRequest(model: "gpt-4o", messages: promptWithChatMemory, max_completion_tokens: 350, tools: tools)
     
     let dataTask = AF.request(
         url,

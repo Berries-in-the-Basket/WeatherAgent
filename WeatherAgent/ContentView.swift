@@ -18,7 +18,11 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            TextField("Type a message", text: $prompt)
+            TextField("Ask a question", text: $prompt, axis: .vertical)
+                .padding()
+                .textFieldStyle(.roundedBorder)
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(8)
             
             Button{
                 isLoading = true
@@ -32,9 +36,9 @@ struct ContentView: View {
                             
                             let response = try await callChatOpenAIAPIWithTools(messages: chatHistory)
                             
-//                            print("RESPONSE STARTS HERE: ")
-//                            print(response)
-//                            print("END OF RESPONSE")
+                            print("RESPONSE STARTS HERE: ")
+                            print(response)
+                            print("END OF RESPONSE")
                             
                             chatHistory.append(ChatMessage(role: "assistant", content: response.choices.first?.message.content ?? "", tool_calls: response.choices.first?.message.tool_calls, tool_call_id: nil))
                             
@@ -100,21 +104,29 @@ struct ContentView: View {
                 
             } label: {
                 Text(isLoading ? "Loading..." : "Generate Response")
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(red: 84/255, green: 22/255, blue: 144/255))
                     .bold()
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(Color(red: 255/255, green: 205/255, blue: 56/255))
                     .cornerRadius(8)
             }
+            .padding()
             
             Text("Response:")
+                .padding()
             
             if textToBeDisplayed != ""{
                 ScrollView {
                     Text(textToBeDisplayed)
+                        .padding()
                     Text(currentLocation)
+                        .padding()
                 }
+                .frame(maxWidth: .infinity)
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(8)
+                .padding()
             }
         }
         .padding()
